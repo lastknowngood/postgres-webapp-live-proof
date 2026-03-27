@@ -17,12 +17,28 @@ def test_entries_flow_in_memory() -> None:
     health = client.get('/healthz')
     assert health.status_code == 200
     assert health.json()['store'] == 'InMemoryEntryStore'
+    assert (
+        health.headers['x-robots-tag']
+        == 'noindex, nofollow, noarchive, noimageindex, nosnippet'
+    )
 
     index = client.get('/')
     assert index.status_code == 200
     assert MARKER in index.text
     assert DAY2_MARKER in index.text
     assert 'Entries currently stored: 0' in index.text
+    assert (
+        index.headers['x-robots-tag']
+        == 'noindex, nofollow, noarchive, noimageindex, nosnippet'
+    )
+
+    robots = client.get('/robots.txt')
+    assert robots.status_code == 200
+    assert robots.text == 'User-agent: *\nDisallow: /\n'
+    assert (
+        robots.headers['x-robots-tag']
+        == 'noindex, nofollow, noarchive, noimageindex, nosnippet'
+    )
 
     assert client.get('/entries').json() == {'entries': []}
 
@@ -69,6 +85,10 @@ def test_entries_flow_with_postgres() -> None:
 
     listed_before = client.get('/entries')
     assert listed_before.status_code == 200
+    assert (
+        listed_before.headers['x-robots-tag']
+        == 'noindex, nofollow, noarchive, noimageindex, nosnippet'
+    )
     assert [(entry['value'], entry['source']) for entry in listed_before.json()['entries']] == [
         ('ALPHA', 'seed')
     ]
