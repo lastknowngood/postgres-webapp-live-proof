@@ -1,0 +1,55 @@
+contract_version: v1
+
+lifecycle:
+  mode: live
+
+project:
+  name: postgres-webapp-live-proof
+  owner: lastknowngood
+  repository_url: https://github.com/lastknowngood/postgres-webapp-live-proof
+
+target:
+  platform_class: coolify-single-host-v1
+  host_label: coolify-01
+  environment: production
+
+exposure:
+  mode: private
+  domains:
+    - stateful.dental-school.education
+
+coolify:
+  app_type: dockerfile
+  resource_name: postgres-webapp-live-proof
+  project_name: live-proof-tests
+
+build:
+  source_type: git
+  source_ref: main
+  runtime_notes: FastAPI app on port 8000 backed by PostgreSQL. Public exposure stays blocked until backup and restore are proven on the real host.
+
+state:
+  stateful: true
+  data_paths:
+    - /var/lib/postgresql/data
+    - /backup/postgres/postgres-webapp-live-proof
+  storage_class: managed-postgres-volume
+
+dependencies:
+  database: postgresql
+  cache: none
+  object_storage: none
+
+secrets:
+  source_of_truth: external-secret-store
+  required_secret_names:
+    - DATABASE_URL
+
+operations:
+  healthcheck: GET /healthz
+  rollback_hint: Restore the previous PostgreSQL dump into a clean target and redeploy the previous known-good Git commit.
+  backup_class: stateful-logical-dump
+
+notes:
+  - First stateful proof path stays private until backup and restore are proven.
+  - Default public-proof end state is cleanup after evidence.
