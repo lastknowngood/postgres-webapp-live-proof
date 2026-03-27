@@ -6,26 +6,42 @@ Erstes separates stateful Projekt-Repo fuer den Postgres-Referenzpfad auf
 ## Charakter
 
 - vorbereitet fuer `lifecycle.mode: live`
-- zunaechst **privater** stateful Proof-Pfad
+- zuerst **privater** Backup-/Restore-Proof
 - PostgreSQL als erste Referenzdatenbank
 - `operations.backup_class: stateful-logical-dump`
 - geplanter Public-Hostname spaeter: `stateful.dental-school.education`
 - Default-Endzustand des ersten Public-Proofs: Cleanup nach Evidence
 
-## Status
+## Lokale Entwicklung
 
-Dieser Repo-Scaffold ist absichtlich vor dem ersten stateful Live-Proof
-angelegt worden.
+Voraussetzungen:
 
-Aktuell gilt:
+- Python `3.12`
+- `uv`
+- optional Docker fuer den lokalen PostgreSQL-Integrationstest
 
-- App- und Contract-Form stehen
-- die lokale Python-/uv-Toolchain auf diesem Rechner ist noch nicht einsatzbereit
-- deshalb ist der Scaffold strukturell vorbereitet, aber noch nicht mit einem
-  echten lokalen Python-QA-Lauf abgeschlossen
-- kein privater oder oeffentlicher Live-Proof, bevor der Host-Gate
-  `restic-check` gruen ist und Backup/Restore auf dem echten Host gegengeprueft
-  wurden
+Schnellstart:
+
+```powershell
+uv sync
+uv run pytest --cov=app
+uv run ruff check .
+uv run pyright
+```
+
+Optionaler lokaler PostgreSQL-Test:
+
+```powershell
+docker compose up -d postgres
+$env:TEST_DATABASE_URL = 'postgresql://postgres:postgres@127.0.0.1:54329/postgres_webapp_live_proof'
+uv run pytest --cov=app
+```
+
+## Laufzeitverhalten
+
+- Standard-Livepfad erwartet `DATABASE_URL`
+- App legt Tabelle `entries` bei Bedarf selbst an
+- sichtbarer Root-Marker: `POSTGRES-WEBAPP-LIVE-PROOF OK`
 
 ## Geplanter Proof-Datensatz
 
@@ -45,7 +61,7 @@ Nach Backup zusaetzlich:
 2. App-Neustart ueberlebt
 3. Redeploy ueberlebt
 4. Dump nach `/backup/postgres/postgres-webapp-live-proof/<timestamp>/`
-5. Restore in sauberes Ziel
-6. `psql`-Readback gegen Restore-Ziel
-7. erst dann kurzer Public-Proof auf `stateful.dental-school.education`
-
+5. `restic-data-backup.sh` nimmt den Dump in `host-data` auf
+6. Restore in sauberes Ziel
+7. `psql`-Readback gegen Restore-Ziel
+8. erst dann kurzer Public-Proof auf `stateful.dental-school.education`
