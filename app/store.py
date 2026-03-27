@@ -15,12 +15,17 @@ CREATE TABLE IF NOT EXISTS entries (
 );
 '''
 
+ENTRY_SOURCE_MIGRATION_SQL = '''
+ALTER TABLE entries
+ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'seed';
+'''
+
 
 class EntryStore:
     def list_entries(self) -> Sequence[EntryRecord]:
         raise NotImplementedError
 
-    def create_entry(self, value: str) -> EntryRecord:
+    def create_entry(self, value: str, source: str = 'manual') -> EntryRecord:
         raise NotImplementedError
 
 
@@ -32,10 +37,11 @@ class InMemoryEntryStore(EntryStore):
     def list_entries(self) -> Sequence[EntryRecord]:
         return list(self._values)
 
-    def create_entry(self, value: str) -> EntryRecord:
+    def create_entry(self, value: str, source: str = 'manual') -> EntryRecord:
         entry = EntryRecord(
             id=self._next_id,
             value=value,
+            source=source,
             created_at=datetime.now(timezone.utc),
         )
         self._next_id += 1
@@ -55,33 +61,37 @@ class PostgresEntryStore(EntryStore):
         with self._connect() as conn:
             with conn.cursor() as cur:
                 cur.execute(ENTRY_SCHEMA_SQL)
+                cur.execute(ENTRY_SOURCE_MIGRATION_SQL)
             conn.commit()
 
     def list_entries(self) -> Sequence[EntryRecord]:
         with self._connect() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    'SELECT id, value, created_at FROM entries ORDER BY id ASC'
+                    'SELECT id, value, source, created_at FROM entries ORDER BY id ASC'
                 )
                 rows = cur.fetchall()
-        return [EntryRecord(id=row[0], value=row[1], created_at=row[2]) for row in rows]
+        return [
+            EntryRecord(id=row[0], value=row[1], source=row[2], created_at=row[3])
+            for row in rows
+        ]
 
-    def create_entry(self, value: str) -> EntryRecord:
+    def create_entry(self, value: str, source: str = 'manual') -> EntryRecord:
         with self._connect() as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     '''
-                    INSERT INTO entries (value)
-                    VALUES (%s)
-                    RETURNING id, value, created_at
+                    INSERT INTO entries (value, source)
+                    VALUES (%s, %s)
+                    RETURNING id, value, source, created_at
                     ''',
-                    (value,),
+                    (value, source),
                 )
                 row = cur.fetchone()
             conn.commit()
         if row is None:
             raise RuntimeError('insert returned no row')
-        return EntryRecord(id=row[0], value=row[1], created_at=row[2])
+        return EntryRecord(id=row[0], value=row[1], source=row[2], created_at=row[3])
 
 
 def build_default_store() -> EntryStore:

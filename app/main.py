@@ -7,6 +7,7 @@ from .models import EntryCreate, EntryRecord
 from .store import EntryStore, build_default_store
 
 MARKER = 'POSTGRES-WEBAPP-LIVE-PROOF OK'
+DAY2_MARKER = 'DAY-2-SCHEMA-V2 OK'
 
 
 def create_app(store_factory: Callable[[], EntryStore] | None = None) -> FastAPI:
@@ -32,7 +33,7 @@ def create_app(store_factory: Callable[[], EntryStore] | None = None) -> FastAPI
 
     @app.post('/entries')
     def create_entry(payload: EntryCreate, store: EntryStore = Depends(get_store)) -> EntryRecord:
-        return store.create_entry(payload.value)
+        return store.create_entry(payload.value, payload.source)
 
     @app.get('/', response_class=HTMLResponse)
     def index(store: EntryStore = Depends(get_store)) -> HTMLResponse:
@@ -46,13 +47,14 @@ def create_app(store_factory: Callable[[], EntryStore] | None = None) -> FastAPI
     <meta name="robots" content="noindex,nofollow,noarchive,noimageindex,nosnippet">
     <title>postgres-webapp-live-proof</title>
   </head>
-  <body>
-    <main>
-      <h1>{MARKER}</h1>
-      <p>Entries currently stored: {count}</p>
-      <p>Backup class: stateful-logical-dump</p>
-    </main>
-  </body>
+      <body>
+        <main>
+          <h1>{MARKER}</h1>
+          <p>{DAY2_MARKER}</p>
+          <p>Entries currently stored: {count}</p>
+          <p>Backup class: stateful-logical-dump</p>
+        </main>
+      </body>
 </html>'''
         )
 

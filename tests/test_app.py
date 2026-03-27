@@ -4,7 +4,7 @@ import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import MARKER, create_app
+from app.main import DAY2_MARKER, MARKER, create_app
 from app.store import InMemoryEntryStore, PostgresEntryStore
 
 TEST_DATABASE_URL = os.getenv('TEST_DATABASE_URL')
@@ -21,6 +21,7 @@ def test_entries_flow_in_memory() -> None:
     index = client.get('/')
     assert index.status_code == 200
     assert MARKER in index.text
+    assert DAY2_MARKER in index.text
     assert 'Entries currently stored: 0' in index.text
 
     assert client.get('/entries').json() == {'entries': []}
@@ -28,11 +29,13 @@ def test_entries_flow_in_memory() -> None:
     created = client.post('/entries', json={'value': 'ALPHA'})
     assert created.status_code == 200
     assert created.json()['value'] == 'ALPHA'
+    assert created.json()['source'] == 'manual'
     assert created.json()['created_at']
 
     listed = client.get('/entries')
     assert listed.status_code == 200
     assert listed.json()['entries'][0]['value'] == 'ALPHA'
+    assert listed.json()['entries'][0]['source'] == 'manual'
 
 
 @pytest.mark.integration
@@ -44,14 +47,39 @@ def test_entries_flow_with_postgres() -> None:
     with psycopg.connect(database_url) as conn:
         with conn.cursor() as cur:
             cur.execute('DROP TABLE IF EXISTS entries')
+            cur.execute(
+                '''
+                CREATE TABLE entries (
+                    id BIGSERIAL PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                )
+                '''
+            )
+            cur.execute(
+                '''
+                INSERT INTO entries (value, created_at)
+                VALUES ('ALPHA', now())
+                '''
+            )
         conn.commit()
 
     app = create_app(store_factory=lambda: PostgresEntryStore(database_url))
     client = TestClient(app)
 
-    created = client.post('/entries', json={'value': 'BETA'})
+    listed_before = client.get('/entries')
+    assert listed_before.status_code == 200
+    assert [(entry['value'], entry['source']) for entry in listed_before.json()['entries']] == [
+        ('ALPHA', 'seed')
+    ]
+
+    created = client.post('/entries', json={'value': 'BETA', 'source': 'post-migration'})
     assert created.status_code == 200
+    assert created.json()['source'] == 'post-migration'
 
     listed = client.get('/entries')
     assert listed.status_code == 200
-    assert [entry['value'] for entry in listed.json()['entries']] == ['BETA']
+    assert [(entry['value'], entry['source']) for entry in listed.json()['entries']] == [
+        ('ALPHA', 'seed'),
+        ('BETA', 'post-migration'),
+    ]
