@@ -14,8 +14,10 @@ Erstes separates stateful Projekt-Repo fuer den Postgres-Referenzpfad auf
 ## Aktueller Zustand
 
 - der erste private Backup-/Restore-Proof ist erfolgreich gelaufen
-- der erste kurze Public-Proof auf `stateful.dental-school.education` ist
+- der erste Day-2-Migrationsproof mit additiver Schema-Aenderung ist
   erfolgreich gelaufen
+- der zweite kurze Public-Proof auf `stateful.dental-school.education` ist
+  ebenfalls erfolgreich gelaufen
 - der Public-Proof wurde danach wieder fail-closed aufgeraeumt
 - aktuell laeuft **kein** retained stateful Dienst aus diesem Repo auf
   `coolify-01`
@@ -50,45 +52,61 @@ uv run pytest --cov=app
 - Standard-Livepfad erwartet `DATABASE_URL`
 - App legt Tabelle `entries` bei Bedarf selbst an
 - sichtbarer Root-Marker: `POSTGRES-WEBAPP-LIVE-PROOF OK`
+- sichtbarer Day-2-Marker: `DAY-2-SCHEMA-V2 OK`
 
 ## Proof-Datensatz
 
-Vor Backup:
+V1-Fixture vor der V2-Migration:
 
 - `ALPHA`
 - `BETA`
 - `GAMMA`
 
+Nach der V2-Migration, aber noch vor Backup:
+
+- `DELTA` mit `source=post-migration`
+
 Nach Backup zusaetzlich:
 
-- `POST_BACKUP_ONLY`
+- `POST_BACKUP_ONLY` mit `source=post-backup`
+
+Nur fuer den oeffentlichen Day-2-Write-Beleg:
+
+- `PUBLIC_PROBE` mit `source=public-proof`
 
 ## Reale Evidence
 
-- erfolgreich privat bewiesener Deploy-SHA:
-  `14c27f853e5cc565dba475adde49af0d87185356`
+- erfolgreich privat und oeffentlich bewiesener Day-2-Deploy-SHA:
+  `1aa5ed88dccd7bcac0e18a029f2c420983c96d99`
 - primaere App-UUID:
-  `pkil5q9umkviovfvo9ufe9ta`
+  `imbwnie1l8as1o7ptrpu2rl6`
 - primaere DB-UUID:
-  `h10ountpwskdppy1xxp7rih3`
+  `agy17zapuiyrwu7tt3yte7uo`
 - Restore-DB-UUID:
-  `r3csofi29vmm95qq3s3e2byq`
+  `qnsdqpp4dz1u94zklkozjzcv`
 - Dump-Verzeichnis:
-  `/backup/postgres/postgres-webapp-live-proof/20260327T185457Z`
+  `/backup/postgres/postgres-webapp-live-proof/20260327T213132Z`
 - `host-data`-Snapshot nach Dump-Aufnahme:
-  `fcaa90ba`
+  `b0a46506`
 
 ## Reale Verifikation
 
-1. `ALPHA`, `BETA`, `GAMMA` auf primaerer DB geschrieben und gelesen
-2. App-Neustart ueberlebt
-3. Redeploy ueberlebt
-4. Dump nach `/backup/postgres/postgres-webapp-live-proof/20260327T185457Z`
-5. `restic-data-backup.sh` hat den Dump in `host-data` aufgenommen
-6. `POST_BACKUP_ONLY` erst **nach** dem Backup in der primaeren DB erzeugt
-7. Restore in sauberes Ziel erfolgreich
-8. `psql`-Readback gegen Restore-Ziel zeigte `ALPHA`, `BETA`, `GAMMA`, aber
-   nicht `POST_BACKUP_ONLY`
-9. kurzer Public-Proof auf `stateful.dental-school.education` erfolgreich
-10. danach DNS, App, DB-Ressourcen, Dump-Artefakte und API-Zugang wieder
-    aufgeraeumt
+1. primaere DB bewusst auf das alte V1-Schema ohne `source` zurueckgesetzt
+2. `ALPHA`, `BETA`, `GAMMA` im Alt-Schema erzeugt
+3. V2-App gestartet; dieselben Alt-Daten wurden danach als
+   `ALPHA|seed`, `BETA|seed`, `GAMMA|seed` read-backbar
+4. `DELTA|post-migration` vor dem Backup erfolgreich hinzugefuegt
+5. App-Neustart ueberlebt
+6. Redeploy ueberlebt
+7. Dump nach `/backup/postgres/postgres-webapp-live-proof/20260327T213132Z`
+8. `restic-data-backup.sh` hat den Dump in `host-data` aufgenommen
+9. `POST_BACKUP_ONLY|post-backup` erst **nach** dem Backup in der primaeren DB
+   erzeugt
+10. Restore in sauberes Ziel erfolgreich
+11. `psql`-Readback gegen Restore-Ziel zeigte `ALPHA|seed`, `BETA|seed`,
+    `GAMMA|seed`, `DELTA|post-migration`, aber nicht `POST_BACKUP_ONLY`
+12. kurzer Public-Proof auf `stateful.dental-school.education` erfolgreich:
+    Root-Marker, Day-2-Marker, `GET /entries`, `POST /entries`, `robots.txt`
+    und `X-Robots-Tag`
+13. oeffentlicher Write-Beleg `PUBLIC_PROBE|public-proof` erfolgreich
+14. danach DNS, App, DB-Ressourcen und Dump-Artefakte wieder aufgeraeumt

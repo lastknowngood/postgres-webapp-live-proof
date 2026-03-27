@@ -53,5 +53,5 @@ operations:
 notes:
   - First stateful proof path stays private until backup and restore are proven.
   - Default public-proof end state is cleanup after evidence.
-  - The first private and public proof were completed successfully from deployed commit 14c27f853e5cc565dba475adde49af0d87185356.
+  - Private/public proofs including the first same-day day-2 schema-migration drill were completed successfully from deployed commit 1aa5ed88dccd7bcac0e18a029f2c420983c96d99.
   - Current steady state is fail-closed cleanup; no retained public stateful deployment is expected from this contract by default.
