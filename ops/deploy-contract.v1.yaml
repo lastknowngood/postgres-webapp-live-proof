@@ -53,3 +53,5 @@ operations:
 notes:
   - First stateful proof path stays private until backup and restore are proven.
   - Default public-proof end state is cleanup after evidence.
+  - The first private and public proof were completed successfully from deployed commit 14c27f853e5cc565dba475adde49af0d87185356.
+  - Current steady state is fail-closed cleanup; no retained public stateful deployment is expected from this contract by default.

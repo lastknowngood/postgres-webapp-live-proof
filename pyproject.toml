@@ -61,4 +61,4 @@ venvPath = '.'
 venv = '.venv'
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ['uvicorn']
+DEP002 = ['uvicorn', 'starlette']
