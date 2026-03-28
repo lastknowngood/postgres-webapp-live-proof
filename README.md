@@ -54,6 +54,51 @@ uv run pytest --cov=app
 - sichtbarer Root-Marker: `POSTGRES-WEBAPP-LIVE-PROOF OK`
 - sichtbarer Day-2-Marker: `DAY-2-SCHEMA-V2 OK`
 
+## Kanonische Live-Verdrahtung
+
+- App-Ressource in Coolify:
+  - `postgres-webapp-live-proof`
+- primaere DB-Identitaet fuer den Livepfad:
+  - `POSTGRES_DB=postgres_webapp_live_proof`
+- Restore-DB-Identitaet nur fuer den Restore-Gegentest:
+  - `POSTGRES_DB=postgres_webapp_live_proof_restore`
+- `DATABASE_URL` wird im Livepfad bewusst auf die **primaere** DB verdrahtet
+  und nie auf die Restore-DB
+- fuer den reproduzierbaren Day-2-Drill wird der private Deploy explizit auf
+  den dokumentierten Commit
+  `1aa5ed88dccd7bcac0e18a029f2c420983c96d99` gezogen; ein scored Drill soll
+  sich nicht auf bewegliches `main` allein verlassen
+- derselbe Pin gilt erst dann als erfolgreich deployt, wenn das
+  Coolify-Deploy-Log denselben importierten Commit read-backt
+- ein gespeichertes Source-/Commit-Feld allein ist dafuer auf diesem Hostbild
+  kein gruener Deploy-Beweis
+
+## Kanonischer Coolify-Pfad
+
+- Landing-Zone:
+  - `live-proof-tests -> production`
+- Ressourcen zuerst in dieser Reihenfolge:
+  1. primaere PostgreSQL-Ressource fuer `postgres_webapp_live_proof`
+  2. separate Restore-PostgreSQL-Ressource fuer
+     `postgres_webapp_live_proof_restore`
+  3. App `postgres-webapp-live-proof` aus dem oeffentlichen Git-Repo
+- App-Deploy-Default:
+  - Branch `main`
+  - Dockerfile-Build
+  - interner Port `8000`
+  - privater Host zuerst `http://stateful.dental-school.education`
+- fuer den scored Day-2-Drill:
+  - den Deploy bewusst auf Commit
+    `1aa5ed88dccd7bcac0e18a029f2c420983c96d99` ziehen
+  - den Lauf nur dann als gruen werten, wenn das Deploy-Log denselben
+    importierten Commit zeigt; wenn weiter der `main`-Tip deployt wird, bleibt
+    der Lauf privat rot und wird fail-closed aufgeraeumt
+  - jeden Neustart oder Redeploy explizit ueber die App-Ressource ausloesen
+- Cleanup:
+  - App entfernen
+  - primaere DB entfernen
+  - Restore-DB entfernen
+
 ## Proof-Datensatz
 
 V1-Fixture vor der V2-Migration:
