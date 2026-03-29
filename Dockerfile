@@ -2,6 +2,8 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+ARG APP_BUILD_REVISION=development
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
@@ -9,7 +11,8 @@ RUN apt-get update \
 COPY pyproject.toml README.md ./
 COPY app ./app
 
-RUN pip install --no-cache-dir .
+RUN printf '%s\n' "$APP_BUILD_REVISION" > /app/app/_build_revision.txt \
+    && pip install --no-cache-dir .
 
 EXPOSE 8000
 

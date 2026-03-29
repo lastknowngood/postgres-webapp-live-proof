@@ -17,6 +17,7 @@ def test_entries_flow_in_memory() -> None:
     health = client.get('/healthz')
     assert health.status_code == 200
     assert health.json()['store'] == 'InMemoryEntryStore'
+    assert health.json()['build_revision'] == 'development'
     assert (
         health.headers['x-robots-tag']
         == 'noindex, nofollow, noarchive, noimageindex, nosnippet'
@@ -92,6 +93,11 @@ def test_entries_flow_with_postgres() -> None:
     assert [(entry['value'], entry['source']) for entry in listed_before.json()['entries']] == [
         ('ALPHA', 'seed')
     ]
+
+    health = client.get('/healthz')
+    assert health.status_code == 200
+    assert health.json()['build_revision'] == 'development'
+    assert health.json()['store'] == 'PostgresEntryStore'
 
     created = client.post('/entries', json={'value': 'BETA', 'source': 'post-migration'})
     assert created.status_code == 200

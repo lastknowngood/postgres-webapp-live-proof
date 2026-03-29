@@ -3,6 +3,7 @@ from collections.abc import Callable
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 
+from .build_info import get_build_revision
 from .models import EntryCreate, EntryRecord
 from .store import EntryStore, build_default_store
 
@@ -33,6 +34,7 @@ def create_app(store_factory: Callable[[], EntryStore] | None = None) -> FastAPI
             'status': 'ok',
             'project': 'postgres-webapp-live-proof',
             'store': store.__class__.__name__,
+            'build_revision': get_build_revision(),
         }
 
     @app.get('/entries')

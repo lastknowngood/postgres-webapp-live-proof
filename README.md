@@ -21,6 +21,10 @@ Erstes separates stateful Projekt-Repo fuer den Postgres-Referenzpfad auf
 - der Public-Proof wurde danach wieder fail-closed aufgeraeumt
 - aktuell laeuft **kein** retained stateful Dienst aus diesem Repo auf
   `coolify-01`
+- dieses Repo traegt jetzt zusaetzlich einen privaten GHCR-Image-Publish-Pfad
+  fuer den naechsten digestbasierten Stateful-Retry
+- der kanonische Deploy-Contract bleibt bis zu einem gruenden privaten
+  Image-Lauf trotzdem bewusst noch git-basiert
 
 ## Lokale Entwicklung
 
@@ -53,6 +57,8 @@ uv run pytest --cov=app
 - App legt Tabelle `entries` bei Bedarf selbst an
 - sichtbarer Root-Marker: `POSTGRES-WEBAPP-LIVE-PROOF OK`
 - sichtbarer Day-2-Marker: `DAY-2-SCHEMA-V2 OK`
+- `GET /healthz` read-backt jetzt zusaetzlich eine gebackene
+  `build_revision`
 
 ## Kanonische Live-Verdrahtung
 
@@ -98,6 +104,14 @@ uv run pytest --cov=app
   - App entfernen
   - primaere DB entfernen
   - Restore-DB entfernen
+
+## GHCR Image Drill
+
+- Workflow: `.github/workflows/publish-immutable-image.yml`
+- Registry-Ziel: `ghcr.io/lastknowngood/postgres-webapp-live-proof`
+- Publish-Handle pro Ref: `sha-<full-git-sha>`
+- der spaetere Coolify-Deploy soll nicht auf dem Tag, sondern auf dem
+  anonym read-backten Digest aufsetzen
 
 ## Proof-Datensatz
 
