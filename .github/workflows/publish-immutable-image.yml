@@ -130,12 +130,12 @@ jobs:
             sleep 1
           done
           python - <<'PY'
-import json
-from pathlib import Path
-payload = json.loads(Path('/tmp/healthz.json').read_text(encoding='utf-8'))
-assert payload['status'] == 'ok', payload
-assert payload['build_revision'] == '${{ steps.meta.outputs.full_sha }}', payload
-PY
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/healthz.json').read_text(encoding='utf-8'))
+          assert payload['status'] == 'ok', payload
+          assert payload['build_revision'] == '${{ steps.meta.outputs.full_sha }}', payload
+          PY
           docker rm -f "${app_container}" >/dev/null
           docker run -d --name "${app_override_container}" --network "${network}" -p 18081:8000 \
             -e DATABASE_URL=postgresql://postgres:postgres@${db_container}:5432/postgres_webapp_live_proof \
@@ -148,11 +148,11 @@ PY
             sleep 1
           done
           python - <<'PY'
-import json
-from pathlib import Path
-payload = json.loads(Path('/tmp/healthz-override.json').read_text(encoding='utf-8'))
-assert payload['build_revision'] == '${{ steps.meta.outputs.full_sha }}', payload
-PY
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/healthz-override.json').read_text(encoding='utf-8'))
+          assert payload['build_revision'] == '${{ steps.meta.outputs.full_sha }}', payload
+          PY
 
       - name: Push immutable image
         id: push
