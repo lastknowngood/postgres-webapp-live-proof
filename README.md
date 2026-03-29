@@ -21,10 +21,15 @@ Erstes separates stateful Projekt-Repo fuer den Postgres-Referenzpfad auf
 - der Public-Proof wurde danach wieder fail-closed aufgeraeumt
 - aktuell laeuft **kein** retained stateful Dienst aus diesem Repo auf
   `coolify-01`
-- dieses Repo traegt jetzt zusaetzlich einen privaten GHCR-Image-Publish-Pfad
-  fuer den naechsten digestbasierten Stateful-Retry
-- der kanonische Deploy-Contract bleibt bis zu einem gruenden privaten
-  Image-Lauf trotzdem bewusst noch git-basiert
+- dieses Repo enthaelt aktuell einen GHCR-Image-Publish-Workflow und eine
+  gebackene `build_revision`
+- der billige Digest-Lab-Lauf auf dem aktuellen Coolify
+  `v4.0.0-beta.470` blieb jedoch rot, weil Docker-Image-Deploys den Digest im
+  effektiven Pull-Ref doppeln und damit mit `invalid reference format`
+  scheitern
+- ein privater stateful Image-Retry wurde deshalb bewusst noch nicht
+  gestartet
+- der kanonische Deploy-Contract bleibt aktuell bewusst git-basiert
 
 ## Lokale Entwicklung
 
@@ -78,6 +83,9 @@ uv run pytest --cov=app
   Coolify-Deploy-Log denselben importierten Commit read-backt
 - ein gespeichertes Source-/Commit-Feld allein ist dafuer auf diesem Hostbild
   kein gruener Deploy-Beweis
+- fuer denselben Host ist der digestbasierte Docker-Image-Pfad aktuell
+  ebenfalls nicht gruenerzwungen; der Host-Blocker liegt bei
+  `v4.0.0-beta.470` im doppelt angehaengten Digest-Ref
 
 ## Kanonischer Coolify-Pfad
 
@@ -112,6 +120,11 @@ uv run pytest --cov=app
 - Publish-Handle pro Ref: `sha-<full-git-sha>`
 - der spaetere Coolify-Deploy soll nicht auf dem Tag, sondern auf dem
   anonym read-backten Digest aufsetzen
+- der aktuelle Host-Stand blockiert diesen Pfad jedoch noch:
+  - der billige Lab-Lauf auf `v4.0.0-beta.470` doppelte den Digest im
+    effektiven Pull-Ref
+  - ein echter stateful Image-Deploy auf Coolify wurde deshalb bewusst noch
+    nicht gestartet
 
 ## Proof-Datensatz
 

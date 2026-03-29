@@ -57,4 +57,5 @@ notes:
   - Canonical live wiring uses the primary PostgreSQL path `postgres_webapp_live_proof`; the restore target stays `postgres_webapp_live_proof_restore` and is never the app live target.
   - For a reproducible day-2 drill, set `DATABASE_URL` from the primary PostgreSQL resource path and explicitly deploy commit 1aa5ed88dccd7bcac0e18a029f2c420983c96d99 instead of relying on moving `main` alone.
   - The requested day-2 commit pin counts as green only when the Coolify deploy log imports the same SHA; a saved Source/Commit field alone is not sufficient evidence on this host image.
+  - The later immutable-image lab on Coolify `v4.0.0-beta.470` also stayed red because Docker Image deployments duplicated the digest in the effective pull ref and failed with `invalid reference format`; this contract therefore stays intentionally git-based until a separate green image lab exists.
   - Current steady state is fail-closed cleanup; no retained public stateful deployment is expected from this contract by default.
