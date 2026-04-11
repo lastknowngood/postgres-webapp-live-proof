@@ -13,6 +13,8 @@ Erstes separates stateful Projekt-Repo fuer den Postgres-Referenzpfad auf
 
 ## Aktueller Zustand
 
+Klarstellung: `lifecycle.mode: live` beschreibt hier die Proof-/Deploy-Contract-Klasse. Ob aus diesem Repo aktuell ein Dienst, DNS oder Host-Ressourcen retained sind, steht in den folgenden Bulletpoints und in den `notes` des Deploy-Contracts.
+
 - der erste private Backup-/Restore-Proof ist erfolgreich gelaufen
 - der erste Day-2-Migrationsproof mit additiver Schema-Aenderung ist
   erfolgreich gelaufen
