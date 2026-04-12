@@ -3,6 +3,17 @@
 Erstes separates stateful Projekt-Repo fuer den Postgres-Referenzpfad auf
 `coolify-01`.
 
+## Kurzstatus
+
+| Feld | Stand |
+|---|---|
+| Contract-Klasse | `lifecycle.mode: live`, historischer stateful Postgres-Proof |
+| Aktuelle Runtime | kein retained Dienst auf `coolify-01` |
+| Aktuelles DNS | kein retained Public-DNS fuer `stateful.dental-school.education` |
+| Retained Ressourcen | keine App-/DB-Ressourcen |
+| Docs-/Source-Ref | `main` traegt heute die Doku-Wahrheit; der bewiesene Day-2-Deploy-SHA ist `1aa5ed88dccd7bcac0e18a029f2c420983c96d99` |
+| Evidence-Locator | Host-Repo `docs/provisioning-log/2026-03.md`, Eintraege `2026-03-27` zum Postgres-Webapp-Proof, plus `docs/projects/index.md` |
+
 ## Charakter
 
 - `lifecycle.mode: live`
@@ -25,6 +36,8 @@ Klarstellung: `lifecycle.mode: live` beschreibt hier die Proof-/Deploy-Contract-
   `coolify-01`
 - dieses Repo enthaelt aktuell einen GHCR-Image-Publish-Workflow und eine
   gebackene `build_revision`
+- ohne Image-Build-Argument ist `build_revision=development` ein
+  lokaler/default Testmarker und kein Proof-Commit
 - der billige Digest-Lab-Lauf auf dem aktuellen Coolify
   `v4.0.0-beta.470` blieb jedoch rot, weil Docker-Image-Deploys den Digest im
   effektiven Pull-Ref doppeln und damit mit `invalid reference format`
@@ -57,6 +70,9 @@ docker compose up -d postgres
 $env:TEST_DATABASE_URL = 'postgresql://postgres:postgres@127.0.0.1:54329/postgres_webapp_live_proof'
 uv run pytest --cov=app
 ```
+
+`compose.yaml` ist hier nur der lokale DB-Helfer fuer Tests. Der kanonische
+Live-/Proof-Pfad bleibt der Coolify-Contract plus die Host-Evidence.
 
 ## Laufzeitverhalten
 
